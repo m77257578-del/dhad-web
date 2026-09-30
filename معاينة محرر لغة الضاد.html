@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>محرر لغة الضاد البرمجية</title>
+<meta name="theme-color" content="#1e1e2e">
+<meta name="color-scheme" content="dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{color-scheme:dark}
+*{box-sizing:border-box;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+[hidden]{display:none!important}
+body{background:#1e1e2e;color:#fff;margin:0;padding:calc(14px + env(safe-area-inset-top)) 14px calc(84px + env(safe-area-inset-bottom));min-height:100dvh;display:flex;flex-direction:column}
+header{text-align:center;margin-bottom:10px}
+header h1{margin:0;color:#00adb5;font-size:24px}
+header p{margin:5px 0 0;color:#aaa;font-size:13px}
+#install{margin-top:8px;padding:6px 16px;border:1px solid #00adb5;border-radius:16px;background:none;color:#00adb5;font-weight:700;cursor:pointer}
+.tabs-container{display:flex;gap:8px;background:#252538;padding:6px;border-radius:8px;overflow-x:auto}
+.tab-btn{flex:1 0 auto;white-space:nowrap;background:none;border:none;color:#aaa;padding:8px 16px;font-size:14px;font-weight:700;cursor:pointer;border-radius:5px;transition:.3s}
+.tab-btn:hover{color:#fff;background:#2f2f48}
+.tab-btn.active{color:#fff;background:#00adb5}
+.main-container{display:flex;flex:1;gap:15px;min-height:360px;margin-top:10px}
+.editor-section,.output-section{flex:1;display:flex;flex-direction:column;min-width:0}
+.section-title{font-size:15px;margin-bottom:6px;color:#00adb5;font-weight:700}
+#output-frame,#output-text{width:100%;flex:1;min-height:200px;border:2px solid #3f3f5c;border-radius:8px;padding:15px;font-size:15px}
+#output-text{background:#11111b;color:#a6e22e;font-family:'Courier New',Courier,monospace,Tahoma;overflow-y:auto;word-break:break-word}
+#output-text .err{color:#ff2e63}
+#output-text .hint{color:#7d7d99}
+#output-frame{background:#fff;display:none}
+.btn-container{text-align:center;margin:15px 0 10px}
+.run-btn{background:#ff2e63;color:#fff;border:none;padding:12px 40px;font-size:16px;font-weight:700;border-radius:25px;cursor:pointer;transition:.3s;box-shadow:0 4px 15px rgba(255,46,99,.3)}
+.run-btn:hover{background:#e21b4f;transform:translateY(-2px)}
+.wa{z-index:20;position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;background:#25d366;display:grid;place-items:center;box-shadow:0 6px 18px rgba(0,0,0,.45);animation:fl 3s ease-in-out infinite}
+.wa svg{width:40px;height:40px}
+@keyframes fl{50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.wa{animation:none}}
+@media (max-width:768px){.main-container{flex-direction:column}.editor-section,.output-section{min-height:240px}}
+button:focus-visible,textarea:focus-visible,.wa:focus-visible{outline:2px solid #00adb5;outline-offset:2px}
+.doc{max-width:820px;width:100%;margin:0 auto;line-height:1.9}
+.doc h1{color:#00adb5;font-size:26px;margin:8px 0}
+.doc h2{color:#00adb5;font-size:20px;margin:28px 0 8px}
+.doc h3{color:#ff2e63;font-size:16px;margin:22px 0 8px}
+.doc p,.doc li{color:#d9d9e6}
+.doc code{background:#11111b;color:#a6e22e;padding:1px 8px;border-radius:5px;font-family:'Courier New',monospace}
+.doc a.back,.doc-link{color:#00adb5;text-decoration:none;font-weight:700}
+.doc-link{display:inline-block;margin-top:8px}
+.doc input{width:100%;padding:12px 14px;border-radius:8px;border:2px solid #3f3f5c;background:#252538;color:#fff;font-size:16px}
+.entry{background:#252538;border:1px solid #3f3f5c;border-radius:10px;padding:12px 14px;margin:10px 0}
+.entry .w{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.entry strong{font-size:18px}
+.entry p{margin:6px 0}
+.entry pre{margin:8px 0;padding:10px;background:#11111b;color:#9cdcfe;border-radius:8px;overflow-x:auto;white-space:pre-wrap;font-family:'Courier New',Courier,monospace,Tahoma;text-align:right}
+.entry .res{color:#a6e22e;font-size:14px}
+.doc ul{padding-inline-start:22px}
+.doc-link{display:inline-block;margin:8px 0 0 8px;color:#00adb5;font-weight:700;text-decoration:none;font-size:14px}
+.lc{color:#7d7d99;font-weight:400;font-size:13px}
+.editor-wrapper{position:relative;direction:ltr;flex:1;display:flex;min-height:240px;border:2px solid #3f3f5c;border-radius:8px;overflow:hidden;background:#252538}
+.gutter{flex:none;min-width:44px;padding:15px 8px 35px;text-align:right;color:#5b5b7a;background:#20202f;border-inline-end:1px solid #3f3f5c;overflow:hidden;white-space:pre;user-select:none;font:16px/27px 'Courier New',Courier,monospace}
+.code-area{position:relative;flex:1;min-width:0}
+.code-area pre,.code-area textarea{position:absolute;inset:0;margin:0;padding:15px 15px 35px;border:0;white-space:pre;overflow-wrap:normal;tab-size:4;font:16px/27px 'Courier New',Courier,monospace,Tahoma}
+.code-area pre{z-index:2;overflow:hidden;pointer-events:none;color:#e6e6f0}
+.code-area textarea{background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:#fff;overflow:auto;resize:none;outline:none;z-index:1}
+.code-area textarea::selection{background:rgba(0,173,181,.4)}
+.t-c{color:#6a9955}.t-s{color:#ce9178}.t-k{color:#c586c0}.t-b{color:#4fc1ff}.t-n{color:#b5cea8}.t-t{color:#569cd6}
+.ai-fab{z-index:20;position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom));width:60px;height:60px;border-radius:50%;border:0;background:#00adb5;font-size:28px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.ai{position:fixed;z-index:30;right:0;left:0;bottom:0;height:min(78dvh,560px);background:#252538;border-top:2px solid #00adb5;border-radius:16px 16px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -8px 30px rgba(0,0,0,.5)}
+@media (min-width:769px){.ai{left:auto;right:16px;bottom:16px;width:400px;border-radius:16px;border:2px solid #00adb5}}
+.ai-h{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #3f3f5c;color:#00adb5}
+.ai-h button{background:none;border:0;color:#aaa;font-size:20px;cursor:pointer}
+.ai-log{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:88%;padding:9px 12px;border-radius:12px;white-space:pre-wrap;line-height:1.7;font-size:14px;word-break:break-word}
+.m.bot{background:#2f2f48;align-self:flex-start}
+.m.me{background:#00adb5;align-self:flex-end}
+.m button{margin-top:6px;background:#ff2e63;color:#fff;border:0;border-radius:14px;padding:6px 14px;font-weight:700;cursor:pointer}
+.ai-chips{display:flex;gap:6px;padding:6px 12px;overflow-x:auto}
+.ai-chips button{flex:none;white-space:nowrap;background:#1e1e2e;color:#00adb5;border:1px solid #00adb5;border-radius:14px;padding:5px 12px;cursor:pointer;font-size:13px}
+.ai-in{display:flex;gap:8px;padding:10px 12px}
+.ai-in input{flex:1;min-width:0;padding:10px;border-radius:10px;border:1px solid #3f3f5c;background:#11111b;color:#fff;font-size:15px}
+.ai-in button{background:#00adb5;color:#fff;border:0;border-radius:10px;padding:0 16px;font-weight:700;cursor:pointer}
+#docs{display:none}
+.show-docs #docs{display:block}
+.show-docs .main-container,.show-docs .btn-container{display:none}
+#docs section{background:#252538;border:1px solid #3f3f5c;border-radius:10px;padding:14px 16px;margin:12px 0}
+#docs h2{margin:0 0 8px;color:#00adb5;font-size:19px}
+#docs h3{margin:12px 0 4px;font-size:16px}
+#docs p,#docs li{line-height:1.9;color:#ddd}
+#docs .tw{overflow-x:auto}
+#docs table{border-collapse:collapse;width:100%;font-size:14px}
+#docs th,#docs td{border-bottom:1px solid #3f3f5c;padding:8px;text-align:right;vertical-align:top}
+#docs th{color:#00adb5}
+#docs td.c{font-family:'Courier New',monospace,Tahoma;color:#a6e22e}
+#docs pre.ex{background:#11111b;color:#a6e22e;padding:12px;border-radius:8px;overflow-x:auto;margin:8px 0;font-family:'Courier New',monospace,Tahoma;line-height:1.7}
+#dq{width:100%;padding:10px;border-radius:8px;border:1px solid #3f3f5c;background:#11111b;color:#fff;font-size:15px;margin-bottom:8px}
+.try{background:#ff2e63;color:#fff;border:0;padding:6px 16px;border-radius:16px;font-weight:700;font-size:14px;cursor:pointer}
+.ai-h span{display:flex;gap:4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>محرر لغة الضاد البرمجية 💻 ✨</h1>
+  <p>بيئة تطوير متعددة اللغات تعمل داخل جهازك بدون سيرفرات</p>
+  <button id="install" hidden>تثبيت التطبيق 📲</button>
+</header>
+<nav class="tabs-container">
+  <button class="tab-btn active" data-lang="dhad">لغة الضاد العربية 🇸🇦</button>
+  <button class="tab-btn" data-lang="python">Python 🐍</button>
+  <button class="tab-btn" data-lang="javascript">JavaScript ⚡</button>
+  <button class="tab-btn" data-lang="web">واجهات الويب (HTML/CSS) 🌐</button>
+  <button class="tab-btn" data-view="docs">📖 القاموس والقواعد</button>
+</nav>
+<div class="main-container">
+  <section class="editor-section">
+    <div class="section-title"><span id="editor-label"></span> <span class="lc" id="lc"></span></div>
+    <div class="editor-wrapper">
+      <div class="gutter" id="gut" aria-hidden="true"></div>
+      <div class="code-area">
+        <pre id="hl" aria-hidden="true"></pre>
+        <textarea id="code-editor" wrap="off" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+      </div>
+    </div>
+  </section>
+  <section class="output-section">
+    <div class="section-title">📊 شاشة عرض النتائج المباشرة:</div>
+    <div id="output-text"></div>
+    <iframe id="output-frame" sandbox="allow-scripts" title="النتيجة"></iframe>
+  </section>
+</div>
+<div class="btn-container"><button class="run-btn" id="run">تشغيل الشفرة البرمجية 🚀</button></div>
+<div id="docs">
+  <section><h2>ما هي لغة الضاد؟</h2>
+    <p>لغة برمجة عربية تعليمية، تكتب أوامرها بالعربية (مثل «اكتب» و«اذا» و«كرر») فتُترجم فوراً إلى JavaScript وتعمل داخل متصفحك، بلا خادم ولا تثبيت.</p></section>
+  <section><h2>إلى ماذا تهدف؟</h2><ul>
+    <li>تقريب البرمجة لمن لا يتقن الإنجليزية.</li>
+    <li>تعلّم أساسيات البرمجة بلغتك: المتغيرات والشروط والحلقات والدوال.</li>
+    <li>التمهيد للانتقال السهل إلى JavaScript، فلكل كلمة عربية مقابل معروف في القاموس أدناه.</li>
+    <li>بيئة خفيفة تعمل على الهاتف بلا إنترنت بعد التثبيت.</li></ul></section>
+  <section><h2>القواعد</h2><ul>
+    <li>الأوامر تُكتب في أسطر، وتنتهي الجملة بـ <b>;</b> (اختيارية في معظم الحالات).</li>
+    <li>الكتل (الشرط والحلقة والدالة) تُكتب بين <b>{ }</b>.</li>
+    <li>النصوص بين <b>" "</b> أو <b>' '</b>، والتعليقات تبدأ بـ <b>//</b>.</li>
+    <li>الأرقام عربية (٣) أو إنجليزية (3)، ويقبل المترجم الفاصلة العشرية ٫ والفاصلة ، والمنقوطة ؛</li>
+    <li>الكلمات المفتاحية محجوزة، فلا تستخدمها أسماء لمتغيراتك.</li>
+    <li>أسماء المتغيرات والدوال بالعربية أو الإنجليزية، ويقبل المترجم الهمزة وبدونها في «اذا/إذا» و«والا/وإلا».</li>
+    <li>الشروط: <b>و</b> و<b>أو</b> و<b>ليس</b>، والمقارنة بـ <b>== != &gt; &lt; &gt;= &lt;=</b>. استخدم <b>==</b> للمقارنة و<b>=</b> للتخصيص فقط.</li>
+    <li>التكرار العددي: <b>كرر العدد مرة { }</b>.</li>
+    <li>الترجمة تستبدل الكلمات خارج النصوص فقط، فما بين علامات الاقتباس يبقى كما كتبته.</li>
+    <li>بما أن اللغة تُترجم إلى JavaScript، فأي كود JavaScript داخل برنامجك يعمل أيضاً.</li></ul></section>
+  <section><h2>القاموس</h2>
+    <input id="dq" type="search" placeholder="ابحث عن كلمة أو معنى…">
+    <div class="tw"><table><thead><tr><th>الكلمة</th><th>ما يقابلها</th><th>الشرح</th><th>مثال</th></tr></thead><tbody id="dtb"></tbody></table></div></section>
+  <section><h2>أمثلة</h2><div id="dexs"></div></section>
+</div>
+<a class="wa" href="https://wa.me/201040630335" target="_blank" rel="noopener" aria-label="تواصل عبر واتساب">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#fff" d="M12 2a10 10 0 0 0-8.7 14.9L2 22l5.3-1.4A10 10 0 1 0 12 2z"/><path fill="#25d366" transform="translate(6 6) scale(.5)" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+</a>
+<button class="ai-fab" id="ai-open" aria-label="المساعد الذكي">🤖</button>
+<aside class="ai" id="ai" hidden>
+  <div class="ai-h"><b>🤖 المساعد الذكي</b><span><button id="ai-power" title="تفعيل الذكاء المحلي" aria-label="تفعيل الذكاء المحلي">⚡</button><button id="ai-x" aria-label="إغلاق">✕</button></span></div>
+  <div class="ai-log" id="ai-log"></div>
+  <div class="ai-chips" id="ai-chips"></div>
+  <div class="ai-in"><input id="ai-q" placeholder="اسألني أو اطلب فحص كودك…" autocomplete="off"><button id="ai-send">إرسال</button></div>
+</aside>
+<script>const DICT=[
+{ar:'عرف',alt:['متغير'],js:'let',d:'يعرّف متغيراً ويعطيه قيمة.',ex:'عرف العمر = 20;'},
+{ar:'ثابت',js:'const',d:'يعرّف قيمة لا يمكن تغييرها.',ex:'ثابت الاسم = "علي";'},
+{ar:'اكتب',js:'console.log',to:'__p',d:'يطبع قيمة أو أكثر في شاشة النتائج.',ex:'اكتب("مرحباً", 5);'},
+{ar:'ادخل',alt:['أدخل'],js:'prompt',to:'ادخل',d:'يسأل المستخدم ويرجع ما كتبه كنص.',ex:'عرف الاسم = ادخل("اسمك؟");'},
+{ar:'اذا',alt:['إذا'],js:'if',d:'ينفّذ الكتلة إذا تحقق الشرط.',ex:'اذا (س > 5) { اكتب("كبير"); }'},
+{ar:'والا',alt:['وإلا'],js:'else',d:'ينفّذ الكتلة إذا لم يتحقق الشرط. وللشرط الإضافي: والا اذا.',ex:'اذا (س > 5) { … } والا { … }'},
+{ar:'طالما',js:'while',d:'يكرر الكتلة ما دام الشرط صحيحاً.',ex:'طالما (س < 3) { س++; }'},
+{ar:'كرر',js:'for',to:null,d:'يكرر الكتلة عدداً محدداً من المرات: كرر العدد مرة { }.',ex:'كرر ٣ مرة { اكتب("هيا"); }'},
+{ar:'لكل',js:'for',d:'حلقة بعدّاد كاملة على طريقة JavaScript.',ex:'لكل (عرف ي = 1; ي <= 3; ي++) { اكتب(ي); }'},
+{ar:'دالة',js:'function',d:'يعرّف دالة يمكن استدعاؤها لاحقاً.',ex:'دالة مربع(س) { ارجع س * س; }'},
+{ar:'ارجع',alt:['أرجع'],js:'return',d:'يُنهي الدالة ويرجع قيمة.',ex:'ارجع س * 2;'},
+{ar:'صح',alt:['صحيح'],js:'true',d:'القيمة المنطقية «صحيح».',ex:'عرف نجح = صح;'},
+{ar:'غلط',alt:['خطأ_منطقي'],js:'false',d:'القيمة المنطقية «خاطئ».',ex:'عرف نجح = غلط;'},
+{ar:'و',js:'&&',d:'«و» المنطقية: يجب تحقق الشرطين معاً.',ex:'اذا (س > 1 و س < 9) { … }'},
+{ar:'أو',alt:['او'],js:'||',d:'«أو» المنطقية: يكفي تحقق شرط واحد.',ex:'اذا (س < 1 أو س > 9) { … }'},
+{ar:'ليس',js:'!',d:'يعكس القيمة المنطقية.',ex:'اذا (ليس نجح) { … }'}
+];
+const EXS={
+hello:{t:'الترحيب بالمستخدم',c:'عرف الاسم = ادخل("ما هو اسمك؟");\nاكتب("مرحباً بك يا " + الاسم + " في لغة الضاد! ✨");'},
+table:{t:'جدول الضرب',c:'عرف ن = ٥;\nلكل (عرف ي = 1; ي <= 10; ي++) {\n  اكتب(ن + " × " + ي + " = " + (ن * ي));\n}'},
+even:{t:'دالة تفحص العدد الزوجي',c:'دالة زوجي(ع) {\n  ارجع ع % 2 == 0;\n}\nاكتب(زوجي(4));\nاكتب(زوجي(7));'}
+};
+</script>
+<script>const KW={};DICT.forEach(x=>{if(x.to!==null)[x.ar,...(x.alt||[])].forEach(w=>KW[w]=x.to||x.js)});
+const KWRE=new RegExp('(?<![\\p{L}\\p{N}_$])('+Object.keys(KW).join('|')+')(?![\\p{L}\\p{N}_$])','gu');
+const RD="const ادخل=q=>{const r=prompt(q);return r===null?'':r};";
+const PRE={dhad:RD,javascript:'',python:"const print=__p,len=x=>x.length,str=String,int=x=>parseInt(x,10),float=Number,abs=Math.abs,round=Math.round,sum=a=>a.reduce((x,y)=>x+y,0),max=(...a)=>Math.max(...(a.length==1?a[0]:a)),min=(...a)=>Math.min(...(a.length==1?a[0]:a)),range=(a,b,c=1)=>{if(b===undefined){b=a;a=0}const r=[];for(let i=a;c>0?i<b:i>b;i+=c)r.push(i);return r},input=q=>{const r=prompt(q);return r===null?'':r};"};
+
+function dhad(src){
+  const S=[];
+  let s=src.replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/g,m=>'\u0001'+(S.push(m)-1)+'\u0002');
+  s=s.replace(/\/\/.*$/gm,'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/٫/g,'.').replace(/؛/g,';').replace(/،/g,',');
+  let n=0;
+  s=s.replace(/كرر\s+([^{\n]+?)\s+مرة\s*\{/g,(m,c)=>{n++;return 'for(let __i'+n+'=0;__i'+n+'<('+c+');__i'+n+'++){'});
+  s=s.replace(KWRE,w=>KW[w]);
+  return s.replace(/\u0001(\d+)\u0002/g,(m,i)=>S[i]);
+}
+
+const ex=e=>{
+  e=e.replace(/\bTrue\b/g,'true').replace(/\bFalse\b/g,'false').replace(/\bNone\b/g,'null')
+   .replace(/\band\b/g,'&&').replace(/\bor\b/g,'||').replace(/\bnot\s+/g,'!').replace(/\.append\(/g,'.push(')
+   .replace(/(\u0001\d+\u0002)\s*\*\s*(\w+)/g,'$1.repeat($2)')
+   .replace(/([\w.]+)\s*\/\/\s*([\w.]+)/g,'Math.floor($1/$2)');
+  if(e.includes('//'))throw new Error('القسمة الصحيحة // مدعومة مع الأرقام والمتغيرات البسيطة فقط');
+  return e;
+};
+
+function py(src){
+  const S=[];
+  let s=src.replace(/([fF]?)("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')/g,(m,f,q)=>{
+    S.push(f?'`'+q.slice(1,-1).replace(/`/g,'\\`').replace(/\{([^{}]+)\}/g,'${$1}')+'`':q);
+    return '\u0001'+(S.length-1)+'\u0002';
+  });
+  s=s.replace(/#.*$/gm,'');
+  let b;
+  if(b=s.match(/^\s*(import|from|class|try|except|finally|with|raise|del)\b/m))throw new Error('الأمر «'+b[1]+'» غير مدعوم في مفسر بايثون الداخلي');
+  if(/[\[({][^\]\n]*\sfor\s+\S+\s+in\s/.test(s))throw new Error('قوائم الاستيعاب غير مدعومة، استخدم حلقة for عادية');
+  const I='[\\p{L}_][\\p{L}\\p{N}_]*';
+  const AS=new RegExp('^('+I+'(?:\\s*,\\s*'+I+')*)\\s*=(?!=)\\s*(.*)$','u');
+  const L=s.split('\n').map(l=>l.replace(/\t/g,'    ')).filter(l=>l.trim()).map(l=>({i:l.search(/\S/),t:l.trim()}));
+  const sc=[new Set()],par=[new Set()],own=[],bs=[],st=[{i:-1,id:0}];
+  L.forEach((l,k)=>{
+    while(st.length>1&&l.i<=st[st.length-1].i)st.pop();
+    own[k]=st[st.length-1].id;let m;
+    if(m=l.t.match(/^def\s+([^\s(]+)\s*\(([^)]*)\)\s*:$/)){
+      const id=sc.push(new Set())-1;par[id]=new Set(m[2].split(',').map(x=>x.split('=')[0].trim()));bs[k]=id;st.push({i:l.i,id});
+    }else if(m=l.t.match(/^global\s+(.+)$/))m[1].split(',').forEach(x=>par[own[k]].add(x.trim()));
+    else if(m=l.t.match(AS))m[1].split(',').forEach(x=>sc[own[k]].add(x.trim()));
+  });
+  const ho=id=>{const n=[...sc[id]].filter(x=>!par[id].has(x));return n.length?'let '+n.join(',')+';':''};
+  const o=[ho(0)],stk=[L.length?L[0].i:0];
+  L.forEach((l,k)=>{
+    while(l.i<stk[stk.length-1]){stk.pop();o.push('}')}
+    const t=l.t;let m;
+    if(t.endsWith(':')){
+      if(!(L[k+1]&&L[k+1].i>l.i))throw new Error('بعد النقطتين «:» يجب كتابة سطر مُزاح (بمسافات) داخل الكتلة');
+      stk.push(L[k+1].i);const h=t.slice(0,-1).trim();
+      if(m=h.match(/^def\s+([^\s(]+)\s*\((.*)\)$/))o.push('function '+m[1]+'('+m[2]+'){'+ho(bs[k]));
+      else if(m=h.match(/^(if|elif|while)\s+(.+)$/))o.push((m[1]=='elif'?'else if':m[1])+'('+ex(m[2])+'){');
+      else if(h=='else')o.push('else{');
+      else if(m=h.match(/^for\s+(.+?)\s+in\s+(.+)$/))o.push('for(let '+(m[1].includes(',')?'['+m[1]+']':m[1])+' of '+ex(m[2])+'){');
+      else throw new Error('صياغة غير مدعومة: '+t.replace(/\u0001(\d+)\u0002/g,(x,i)=>S[i]));
+    }else if(/^global\s/.test(t)){}
+    else if(t=='pass')o.push(';');
+    else if((m=t.match(AS))&&m[1].includes(','))o.push('['+m[1]+']=['+ex(m[2])+'];');
+    else o.push(ex(t)+';');
+  });
+  while(stk.length>1){stk.pop();o.push('}')}
+  return o.join('\n').replace(/\u0001(\d+)\u0002/g,(m,i)=>S[i]);
+}
+
+function exec(js,lang,P){
+  new Function('console','__p',PRE[lang]+'return (function(){'+js+'\n})()')({log:P,info:P,warn:P,error:P},P);
+}
+
+function arErr(e){
+  const m=e&&e.message||String(e);let r;
+  if(r=m.match(/^(.+?) is not defined/))return '«'+r[1]+'» غير معرّف — تأكد من كتابته وتعريفه قبل استخدامه';
+  if(r=m.match(/Unexpected identifier '?([^']*)'?/))return 'كلمة غير متوقعة «'+r[1]+'» — راجع السطر أو ما قبله';
+  if(/Assignment to constant/.test(m))return 'لا يمكن تغيير قيمة «ثابت» بعد تعريفها';
+  if(r=m.match(/^(.+?) is not a function/))return '«'+r[1]+'» ليست دالة ولا يمكن استدعاؤها';
+  if(/before initialization/.test(m))return 'استخدام متغير قبل تعريفه: '+m;
+  if(e instanceof SyntaxError)return 'خطأ في كتابة الكود (أقواس أو رموز ناقصة أو زائدة): '+m;
+  return m;
+}
+
+/*UI*/
+const T={
+dhad:'عرف الاسم = ادخل("ما هو اسمك؟");\nاكتب("مرحباً بك يا " + الاسم + " في لغة الضاد! ✨");\n\nكرر ٣ مرة {\n  اكتب("سطر من الحلقة");\n}\n\nدالة مربع(س) {\n  ارجع س * س;\n}\nاكتب("مربع 7 = " + مربع(7));\n\nاذا (مربع(3) > 5 و صح) {\n  اكتب("تم التحقق من الشروط 🚀");\n} والا {\n  اكتب("لم يتحقق الشرط");\n}',
+python:'def square(x):\n    return x * x\n\nfor i in range(3):\n    print("رقم", i, "مربعه", square(i))\n\ntotal = 0\nfor n in [1, 2, 3, 4]:\n    total += n\nprint(f"المجموع = {total}")\n\nif total > 5 and total < 20:\n    print("داخل النطاق")\nelse:\n    print("خارج النطاق")',
+javascript:'console.log("Hello from JavaScript! ⚡");\n\nlet num = 10;\nif (num > 5) {\n  console.log("Number is greater than 5");\n}',
+web:'<!DOCTYPE html>\n<html dir="rtl">\n<head>\n<style>\n  body { background: #11111b; color: white; text-align: center; padding-top: 50px; font-family: sans-serif; }\n  h1 { color: #00adb5; }\n</style>\n</head>\n<body>\n  <h1>صفحة ويب مخصصة ومتكاملة! 🌐</h1>\n</body>\n</html>'};
+const LBL={dhad:'لغة الضاد',python:'Python',javascript:'JavaScript',web:'HTML و CSS'};
+const $=id=>document.getElementById(id);
+const ed=$('code-editor'),out=$('output-text'),frame=$('output-frame');
+let lang='dhad';
+
+function fm(v){
+  if(typeof v==='boolean')return lang==='python'?(v?'True':'False'):lang==='dhad'?(v?'صح':'غلط'):String(v);
+  if(v===null||v===undefined)return lang==='python'?'None':String(v);
+  if(Array.isArray(v))return '['+v.map(x=>typeof x==='string'?"'"+x+"'":fm(x)).join(', ')+']';
+  if(typeof v==='object'){try{return JSON.stringify(v)}catch(e){}}
+  return String(v);
+}
+function line(t,c){const d=document.createElement('div');d.dir='auto';if(c)d.className=c;d.textContent=t;out.appendChild(d)}
+function setLang(l){
+  lang=l;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+  ed.value=T[l];ed.dir=l==='dhad'?'rtl':'ltr';
+  $('editor-label').textContent='✍️ اكتب كود «'+LBL[l]+'» هنا:';
+  const w=l==='web';out.style.display=w?'none':'block';frame.style.display=w?'block':'none';frame.srcdoc='';
+  out.innerHTML='';line('النتيجة ستظهر هنا بعد الضغط على تشغيل الكود…','hint');
+  if(typeof upd==='function')upd();
+}
+function run(){
+  const code=ed.value;
+  if(lang==='web'){frame.srcdoc=code;return}
+  out.innerHTML='';
+  if(!code.trim()){line('اكتب الكود أولاً.','err');return}
+  const P=(...a)=>line(a.map(fm).join(' '));
+  try{
+    exec(lang==='dhad'?dhad(code):lang==='python'?py(code):code,lang,P);
+    if(!out.childElementCount)line('تم التنفيذ بنجاح ✅ (لا توجد مخرجات)','hint');
+  }catch(e){line('🚨 '+arErr(e),'err')}
+}
+document.querySelector('.tabs-container').addEventListener('click',e=>{const b=e.target.closest('.tab-btn');if(b&&b.dataset.lang)setLang(b.dataset.lang)});
+$('run').addEventListener('click',run);
+ed.addEventListener('keydown',e=>{
+  if(e.key==='Tab'){e.preventDefault();ed.setRangeText('    ',ed.selectionStart,ed.selectionEnd,'end')}
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();run()}
+});
+let dp;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;$('install').hidden=false});
+$('install').addEventListener('click',async()=>{if(!dp)return;dp.prompt();await dp.userChoice;dp=null;$('install').hidden=true});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+setLang('dhad');
+</script>
+<script>const pre=$('hl'),gut=$('gut');
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const STR=/"(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?|`(?:[^`\\]|\\.)*`?/.source;
+const NUM='(?<![\\p{L}_$])[0-9٠-٩]+(?:[.٫][0-9٠-٩]+)?';
+const wb=l=>'(?<![\\p{L}\\p{N}_$])(?:'+l.join('|')+')(?![\\p{L}\\p{N}_$])';
+const BI=['اكتب','ادخل','أدخل'];
+const R={
+  dhad:[['c',/\/\/.*/.source],['s',STR],['b',wb(BI)],['k',wb([...Object.keys(KW).filter(k=>!BI.includes(k)),'كرر','مرة'])],['n',NUM]],
+  python:[['c','#.*'],['s','[fFrRbB]?(?:'+STR+')'],['k',wb('def return if elif else for while in and or not True False None pass break continue global import from class try except with as is lambda'.split(' '))],['b',wb('print len range input int str float sum max min abs round list dict'.split(' '))],['n',NUM]],
+  javascript:[['c',/\/\/.*|\/\*[\s\S]*?(?:\*\/|$)/.source],['s',STR],['k',wb('const let var function return if else for while do switch case break continue new class true false null undefined typeof await async of in this'.split(' '))],['b',wb('console Math Array Object JSON document window String Number prompt alert parseInt parseFloat'.split(' '))],['n',NUM]],
+  css:[['c',/\/\*[\s\S]*?(?:\*\/|$)/.source],['s',STR],['k','[\\w-]+(?=\\s*:)'],['n','#[0-9a-fA-F]{3,8}\\b|-?\\d*\\.?\\d+(?:px|em|rem|%|vh|vw|s)?'],['b','[.#][\\w-]+(?=[^{}]*\\{)']],
+  html:[['c',/<!--[\s\S]*?(?:-->|$)/.source],['t','<\\/?[a-zA-Z][\\w-]*|\\/?>'],['s',/"[^"]*"?|'[^']*'?/.source],['k','[\\w:-]+(?=\\s*=)']]
+};
+function hl(code,rules){
+  if(!rules.re)rules.re=new RegExp(rules.map(r=>'('+r[1]+')').join('|'),'gu');
+  const re=rules.re;re.lastIndex=0;let o='',i=0,m;
+  while(m=re.exec(code)){
+    if(!m[0]){re.lastIndex++;continue}
+    const g=m.findIndex((x,j)=>j&&x!==undefined)-1;
+    o+=esc(code.slice(i,m.index))+'<span class="t-'+rules[g][0]+'">'+esc(m[0])+'</span>';i=re.lastIndex;
+  }
+  return o+esc(code.slice(i));
+}
+function hlHtml(c){
+  const re=/(<style[^>]*>)([\s\S]*?)(<\/style>|$)|(<script[^>]*>)([\s\S]*?)(<\/script>|$)/gi;
+  let o='',i=0,m;
+  while(m=re.exec(c)){
+    o+=hl(c.slice(i,m.index),R.html);
+    o+=m[1]!==undefined?hl(m[1],R.html)+hl(m[2],R.css)+hl(m[3],R.html):hl(m[4],R.html)+hl(m[5],R.javascript)+hl(m[6],R.html);
+    i=re.lastIndex;
+  }
+  return o+hl(c.slice(i),R.html);
+}
+function upd(){
+  const v=ed.value,n=v.split('\n').length;
+  pre.dir=ed.dir;pre.innerHTML=(lang==='web'?hlHtml(v):hl(v,R[lang]))+' ';
+  if(gut.dataset.n!=n){gut.dataset.n=n;gut.textContent=Array.from({length:n},(_,i)=>i+1).join('\n')}
+  $('lc').textContent='('+n+' سطر)';
+  pre.scrollTop=gut.scrollTop=ed.scrollTop;
+}
+ed.addEventListener('input',upd);
+ed.addEventListener('keydown',e=>{if(e.key==='Tab')setTimeout(upd)});
+ed.addEventListener('scroll',()=>{pre.scrollTop=gut.scrollTop=ed.scrollTop;pre.scrollLeft=ed.scrollLeft});
+
+const PAIRS={'(':')','[':']','{':'}','"':'"',"'":"'",'`':'`'},CLOSE=new Set(Object.values(PAIRS));
+function put(txt,a,b,caret){ed.setRangeText(txt,a,b,'end');ed.selectionStart=ed.selectionEnd=caret;upd()}
+ed.addEventListener('beforeinput',e=>{
+  const v=ed.value,s=ed.selectionStart,en=ed.selectionEnd,d=e.data,p=v[s-1]||'',nx=v[en]||'',L=/[\p{L}\p{N}]/u;
+  if(e.inputType==='insertText'&&d&&d.length===1){
+    if(s===en&&nx===d&&CLOSE.has(d)){e.preventDefault();ed.selectionStart=ed.selectionEnd=s+1;return}
+    if(PAIRS[d]){
+      if(s!==en){e.preventDefault();put(d+v.slice(s,en)+PAIRS[d],s,en,en+2);return}
+      if(L.test(nx)||(/['"`]/.test(d)&&L.test(p)))return;
+      e.preventDefault();put(d+PAIRS[d],s,en,s+1);
+    }
+  }else if(e.inputType==='deleteContentBackward'&&s===en&&p&&PAIRS[p]===nx){
+    e.preventDefault();put('',s-1,s+1,s-1);
+  }else if(e.inputType==='insertLineBreak'){
+    e.preventDefault();
+    const ls=v.lastIndexOf('\n',s-1)+1,before=v.slice(ls,s),ind=before.match(/^\s*/)[0];
+    const x=(p==='{'||(lang==='python'&&/:\s*$/.test(before)))?'    ':'';
+    if(p==='{'&&nx==='}')put('\n'+ind+x+'\n'+ind,s,en,s+1+ind.length+x.length);
+    else put('\n'+ind+x,s,en,s+1+ind.length+x.length);
+  }
+});
+upd();
+const ex0=new URLSearchParams(location.search).get('ex');
+if(ex0&&EXS[ex0]){setLang('dhad');ed.value=EXS[ex0].c;upd()}
+
+const tabs=document.querySelector('.tabs-container');
+function view(on){
+  document.body.classList.toggle('show-docs',on);
+  tabs.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',on?b.dataset.view==='docs':b.dataset.lang===lang));
+}
+tabs.addEventListener('click',e=>{const b=e.target.closest('.tab-btn');if(b)view(b.dataset.view==='docs')});
+const dtb=$('dtb');
+function drows(f){
+  dtb.textContent='';
+  DICT.filter(x=>!f||JSON.stringify(x).includes(f)).forEach(x=>{
+    const tr=dtb.insertRow();
+    [[[x.ar,...(x.alt||[])].join(' / '),''],[x.js,'c'],[x.d,''],[x.ex,'c']].forEach(([t,c])=>{const td=tr.insertCell();td.textContent=t;td.dir='auto';if(c)td.className=c});
+  });
+}
+$('dq').addEventListener('input',e=>drows(e.target.value.trim()));drows('');
+Object.entries(EXS).forEach(([k,v])=>{
+  const h=document.createElement('h3'),p=document.createElement('pre'),b=document.createElement('button');
+  h.textContent=v.t;p.className='ex';p.dir='auto';p.textContent=v.c;b.className='try';b.textContent='جرّبه في المحرر ▶';
+  b.onclick=()=>{setLang('dhad');ed.value=v.c;upd();view(false);scrollTo(0,0)};
+  $('dexs').append(h,p,b);
+});
+</script>
+<script>const aiEl=$('ai'),alog=$('ai-log'),aq=$('ai-q');
+const nz=s=>s.replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').toLowerCase();
+const FAQ=[
+['الضاد ضاد تعريف ايش','لغة الضاد لغة برمجة عربية تعليمية: تكتب أوامرها بالعربية فتُترجم فوراً إلى JavaScript وتعمل داخل متصفحك. التفاصيل في صفحة 📖 القاموس.'],
+['هدف اهداف فايده لماذا ليش','هدفها تقريب البرمجة لمن لا يتقن الإنجليزية، وتعلّم المتغيرات والشروط والحلقات والدوال بلغتك، ثم الانتقال بسهولة إلى JavaScript.'],
+['حلقه حلقات تكرار كرر طالما لكل','للتكرار عدداً محدداً:\nكرر ٣ مرة {\n  اكتب("هيا");\n}\nوللتكرار بشرط:\nطالما (س < 5) {\n  س++;\n}'],
+['شرط شروط اذا والا مقارنه','عرف س = 7;\nاذا (س > 5) {\n  اكتب("كبير");\n} والا {\n  اكتب("صغير");\n}\nللمقارنة استخدم == وليس =، وللربط: و / أو / ليس.'],
+['دال دوال وظيفه','دالة مربع(س) {\n  ارجع س * س;\n}\nاكتب(مربع(4));'],
+['متغير متغيرات ثابت','عرف العمر = 20;\nثابت الاسم = "علي";\nالمتغير يمكن تغييره، أما الثابت فلا.'],
+['طباعه اطبع اظهار عرض','اكتب("مرحباً");\nويمكنك طباعة أكثر من قيمة: اكتب("العمر:", 20);'],
+['ادخال اسال سؤال مستخدم','عرف الاسم = ادخل("ما اسمك؟");\nاكتب("أهلاً " + الاسم);'],
+['بايثون python','تبويب Python يدعم: def وfor/range وif/elif/else وwhile وf-strings والقوائم. ولا يدعم import وclass وtry، وأخبرك بذلك بالعربية عند استخدامها.'],
+['قاموس كلمات مفتاحيه قواعد','كل الكلمات المفتاحية وقواعد اللغة وأمثلتها في صفحة 📖 القاموس (الرابط أعلى المحرر).'],
+['تثبيت تطبيق شاشه','من Chrome اضغط زر «تثبيت التطبيق» أعلى الصفحة أو من القائمة اختر «تثبيت التطبيق». وفي iPhone: مشاركة ← إضافة إلى الشاشة الرئيسية.']
+].map(([k,a])=>[nz(k).split(' '),a]);
+function say(t,who,fixed){
+  const d=document.createElement('div');d.className='m '+who;d.textContent=t;
+  if(fixed!==undefined){
+    d.appendChild(document.createElement('br'));
+    const b=document.createElement('button');b.textContent='✅ طبّق التصحيحات';
+    b.onclick=()=>{ed.value=fixed;upd();b.remove();say('تم تطبيق التصحيحات. اضغط «تشغيل» لتجربة الكود.','bot')};
+    d.appendChild(b);
+  }
+  alog.appendChild(d);alog.scrollTop=alog.scrollHeight;return d;
+}
+const SR=/"(?:[^"\\\n]|\\.)*"?|'(?:[^'\\\n]|\\.)*'?/g;
+const oS=(l,f)=>l.split(/("(?:[^"\\]|\\.)*"?|'(?:[^'\\]|\\.)*'?)/).map((p,j)=>j%2?p:f(p)).join('');
+const EA={'console.log':'اكتب',print:'اكتب',let:'عرف',var:'عرف',const:'ثابت','function':'دالة','return':'ارجع','if':'اذا','else':'والا','while':'طالما','true':'صح','false':'غلط',prompt:'ادخل'};
+const AE={اكتب:'console.log',عرف:'let',ثابت:'const',دالة:'function',ارجع:'return',اذا:'if',والا:'else',طالما:'while',صح:'true',غلط:'false'};
+const PY={'true':'True','false':'False','null':'None','&&':'and','||':'or'};
+const RE_EN=/(?<![\w.$])(console\.log|print|let|var|const|function|return|if|else|while|true|false|prompt)(?![\w$])/g;
+const RE_AR=/(?<![\p{L}\p{N}_$])(اكتب|عرف|ثابت|دالة|ارجع|اذا|والا|طالما|صح|غلط)(?![\p{L}\p{N}_$])/gu;
+const RE_PY=/\b(true|false|null)\b|&&|\|\|/g;
+const COND=/((?:اذا|إذا|طالما|if|while|elif)\s*\([^()]*?[^=!<>])=(?![=>])/;
+const COND_PY=/^(\s*(?:if|elif|while)\b[^=!<>]*[^=!<>])=(?!=)/;
+
+function scan(code,lang){
+  const iss=[],st=[],O={'(':')','[':']','{':'}'};let q=null,ql=0,ln=1;
+  for(let i=0;i<code.length;i++){
+    const c=code[i];
+    if(c==='\n'){if(q&&q!=='`'){iss.push({ln:ql,m:'نص مفتوح بعلامة الاقتباس ('+q+') ولم يُغلق',q});q=null}ln++;continue}
+    if(q){if(c==='\\')i++;else if(c===q)q=null;continue}
+    if(c==='"'||c==="'"||c==='`'){q=c;ql=ln;continue}
+    if(lang==='python'?c==='#':(c==='/'&&code[i+1]==='/')){while(i<code.length&&code[i]!=='\n')i++;i--;continue}
+    if(O[c])st.push({c,ln});
+    else if(c===')'||c===']'||c==='}'){const t=st.pop();if(!t||O[t.c]!==c)iss.push({ln,m:'الرمز «'+c+'» زائد أو لا يطابق ما قبله'})}
+  }
+  if(q)iss.push({ln:ql,m:'نص مفتوح ولم يُغلق',q});
+  st.forEach(t=>iss.push({ln:t.ln,m:'الرمز «'+t.c+'» فُتح ولم يُغلق (ينقص «'+O[t.c]+'»)',open:t.c}));
+  return iss;
+}
+function lint(lang,code){
+  const L=code.split('\n'),F=L.slice(),I=[];
+  const add=(i,m,fn)=>{I.push({ln:i+1,m});if(fn)F[i]=fn(F[i])};
+  if(lang==='web'){
+    const V=/^(br|img|meta|link|input|hr|area|base|col|embed|source|track|wbr|!doctype)$/i,st=[];
+    L.forEach((l,i)=>{for(const m of l.matchAll(/<(\/?)([a-zA-Z][\w-]*)[^>]*?(\/?)>/g)){
+      const c=m[1],t=m[2];if(V.test(t)||m[3])continue;
+      if(!c)st.push({t,ln:i+1});
+      else{const k=st.map(x=>x.t.toLowerCase()).lastIndexOf(t.toLowerCase());
+        if(k<0)I.push({ln:i+1,m:'الوسم الختامي </'+t+'> بلا وسم افتتاحي'});
+        else{const inn=st.splice(k).slice(1);inn.forEach(x=>I.push({ln:x.ln,m:'الوسم <'+x.t+'> لم يُغلق'}));if(inn.length)F[i]=F[i].replace('</'+t+'>',inn.reverse().map(x=>'</'+x.t+'>').join('')+'</'+t+'>');}}
+    }});
+    st.forEach(x=>I.push({ln:x.ln,m:'الوسم <'+x.t+'> لم يُغلق'}));
+    [...st].reverse().forEach(x=>F.push('</'+x.t+'>'));
+    return {I,F:F.join('\n')};
+  }
+  L.forEach((line,i)=>{
+    const M=line.replace(SR,'""').replace(lang==='python'?/#.*/:/\/\/.*/,'');
+    if(COND.test(M)||(lang==='python'&&COND_PY.test(M)))add(i,'تستخدم «=» (تخصيص) داخل الشرط؛ للمقارنة استخدم «==»',s=>s.replace(COND,'$1==').replace(lang==='python'?COND_PY:/$^/,'$1=='));
+    const seen=[];
+    if(lang==='dhad'){
+      oS(line,p=>p.replace(RE_EN,w=>(seen.push(w),w)));
+      if(seen.length)add(i,'كلمات إنجليزية في لغة الضاد: '+[...new Set(seen)].map(w=>'«'+w+'» ← «'+EA[w]+'»').join('، '),s=>oS(s,p=>p.replace(RE_EN,w=>EA[w])));
+      if(/^\s*كرر(?![\p{L}\p{N}_])/u.test(M)&&!/مرة/.test(M))add(i,'صيغة التكرار: كرر ٣ مرة { … } — تنقص كلمة «مرة»',/\{/.test(M)?s=>s.replace(/\s*\{/,' مرة {'):null);
+      if(/^\s*اكتب\s+[^(\s]/.test(M))add(i,'«اكتب» تحتاج أقواساً: اكتب(...)',s=>s.replace(/^(\s*)اكتب\s+(.*?);?\s*$/,'$1اكتب($2);'));
+    }else if(lang==='javascript'){
+      oS(line,p=>p.replace(RE_AR,w=>(seen.push(w),w)));
+      if(seen.length)add(i,'كلمات من لغة الضاد داخل JavaScript: '+[...new Set(seen)].map(w=>'«'+w+'» ← «'+AE[w]+'»').join('، '),s=>oS(s,p=>p.replace(RE_AR,w=>AE[w])));
+    }else{
+      oS(line,p=>p.replace(RE_PY,w=>(seen.push(w),w)));
+      if(seen.length)add(i,'كلمات JavaScript داخل Python: '+[...new Set(seen)].map(w=>'«'+w+'» ← «'+PY[w]+'»').join('، '),s=>oS(s,p=>p.replace(RE_PY,w=>PY[w])));
+      if(/^\s*(if|elif|else|for|while|def)\b/.test(M)&&!/:\s*$/.test(M)&&M.split('(').length===M.split(')').length)add(i,'تنقص النقطتان «:» في نهاية السطر',line.includes('#')?null:s=>s.trimEnd()+':');
+      if(/^\s*print\s+[^(=\s]/.test(M))add(i,'في Python يجب استخدام الأقواس: print(...)',s=>s.replace(/^(\s*)print\s+(.*)$/,'$1print($2)'));
+    }
+  });
+  const all=scan(code,lang),ql=new Set(all.filter(x=>x.q).map(x=>x.ln)),sc=all.filter(x=>!(x.open&&ql.has(x.ln)));let braces=0;
+  sc.forEach(x=>{I.push({ln:x.ln,m:x.m});if(x.q)F[x.ln-1]=F[x.ln-1].replace(/([);\]}\s]*)$/,x.q+'$1');else if(x.open==='{'&&lang!=='python')braces++});
+  for(let k=0;k<braces;k++)F.push('}');
+  if(lang==='python'){L.forEach((l,i)=>{const M=l.replace(SR,'""').replace(/#.*/,'');
+    if(/:\s*$/.test(M)&&/^\s*(if|elif|else|for|while|def)\b/.test(M)){let j=i+1;while(j<L.length&&!L[j].trim())j++;
+      if(j<L.length&&L[j].search(/\S/)<=l.search(/\S/))I.push({ln:j+1,m:'يجب إزاحة السطر بعد النقطتين «:» (4 مسافات)'})}})}
+  if(!I.length){
+    try{const js=lang==='dhad'?dhad(code):lang==='python'?py(code):code;new Function('console','__p',PRE[lang]+'return (function(){'+js+'\n})()')}
+    catch(e){I.push({ln:0,m:arErr(e)+' (راجع السطر المذكور وما قبله)'})}
+  }
+  return {I,F:F.join('\n')};
+}
+function doCheck(){
+  const code=ed.value;
+  if(!code.trim())return say('اكتب كوداً في المحرر أولاً ثم اطلب مني فحصه.','bot');
+  const r=lint(lang,code);
+  if(!r.I.length)return say('لم أجد أخطاء ظاهرة في كودك ✅\n(أفحص الصياغة والأخطاء الشائعة فقط، ولا أكتشف أخطاء المنطق.)','bot');
+  say('وجدت '+r.I.length+' ملاحظة:\n'+r.I.map(i=>'• '+(i.ln?'سطر '+i.ln+': ':'')+i.m).join('\n'),'bot',r.F!==code?r.F:undefined);
+}
+function localReply(q){
+  const n=nz(q),toks=n.split(/[^\p{L}\p{N}_]+/u).filter(Boolean);
+  if(/صحح|اصلح|خطا|اخطا|مشكل|لا يعمل|فحص|راجع/.test(n))return doCheck();
+  const e=DICT.find(e=>[e.ar,...(e.alt||[])].some(k=>k.length>2&&toks.includes(nz(k))));
+  if(e)return say('«'+e.ar+'» تقابل «'+e.js+'» في JavaScript.\n'+e.d+'\nمثال:\n'+e.ex,'bot');
+  let best=null,bs=0;
+  FAQ.forEach(([ks,a])=>{const s=ks.filter(k=>k.length>2&&toks.some(t=>t.includes(k))).length;if(s>bs){bs=s;best=a}});
+  say(best||'لم أفهم سؤالك تماماً 🤔\nجرّب أن تسألني عن كلمة مثل «اذا» أو «كرر»، أو عن الشروط والحلقات والدوال، أو اضغط «صحّح أخطائي» لأفحص كودك.','bot');
+}
+function send(q){q=(q||aq.value).trim();if(!q)return;say(q,'me');aq.value='';setTimeout(()=>reply(q),250)}
+['🔍 صحّح أخطائي','ما هي لغة الضاد؟','كيف أكتب حلقة؟','كيف أكتب شرطاً؟'].forEach(t=>{
+  const b=document.createElement('button');b.textContent=t;b.onclick=()=>send(t);$('ai-chips').appendChild(b);
+});
+$('ai-open').onclick=()=>{aiEl.hidden=false;if(!alog.childElementCount)say('أهلاً! أنا مساعد لغة الضاد 🤖\nأجيب عن أسئلتك وأفحص كودك وأصحح الأخطاء الشائعة. أعمل بقواعد جاهزة داخل جهازك بلا إنترنت.','bot');aq.focus()};
+$('ai-x').onclick=()=>{aiEl.hidden=true};
+$('ai-send').onclick=()=>send();
+aq.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+</script>
+<script>FAQ.push(...[
+['مصفوفه مصفوفات قائمه قوائم array list','المصفوفة تحفظ عدة قيم:\nعرف الارقام = [1, 2, 3];\nاكتب(الارقام[0]); // 1\nالارقام.push(4); // إضافة عنصر\nوفي Python: nums = [1, 2, 3] ثم nums.append(4)'],
+['نص نصوص سلسله string حروف','النص يُكتب بين علامتي اقتباس: عرف الاسم = "علي";\nللدمج: "مرحباً " + الاسم\nلطوله: الاسم.length'],
+['عمليه عمليات جمع طرح ضرب قسمه باقي','العمليات: + جمع، - طرح، * ضرب، / قسمة، % باقي القسمة.\nمثال: اكتب(7 % 2); // 1'],
+['نوع انواع بيانات رقم منطقي','الأنواع الأساسية: أرقام (5)، نصوص ("علي")، منطقية (صح / غلط)، مصفوفات ([1,2])، وكائنات.'],
+['تكرار ذاتي recursion استدعاء','الاستدعاء الذاتي: دالة تنادي نفسها حتى تصل لحالة توقف.\nدالة مضروب(ن) {\n  اذا (ن <= 1) { ارجع 1; }\n  ارجع ن * مضروب(ن - 1);\n}'],
+['خوارزميه algorithm','الخوارزمية خطوات واضحة مرتبة لحل مشكلة، مثل: ابحث عن أكبر رقم بمقارنة كل رقم بأكبر رقم وجدته حتى الآن.'],
+['تصحيح debug اخطاء تتبع','نصائح لإيجاد الخطأ: اقرأ رسالة الخطأ وسطرها، اطبع القيم بـ اكتب(...) لتراها، جرّب جزءاً صغيراً من الكود، وتأكد من الأقواس {} والاقتباس. ويمكنك ضغط «صحّح أخطائي».'],
+['html وسم وسوم صفحه ويب','HTML يبني هيكل الصفحة بوسوم مثل <h1> للعنوان و<p> للفقرة و<a> للرابط و<img> للصورة و<button> للزر. كل وسم مفتوح يحتاج وسماً ختامياً مثل </p>.'],
+['css تنسيق الوان خط','CSS ينسّق الصفحة:\nh1 { color: red; font-size: 30px; }\nالخاصية color للون، وbackground للخلفية، وpadding للحشو، وmargin للهامش.'],
+['فرق جافاسكريبت بايثون javascript','JavaScript تستخدم الأقواس {} وتعمل في المتصفح، وPython تعتمد على المسافات وتُكتب أبسط. ولغة الضاد تُترجم إلى JavaScript.'],
+['تعلم ابدا بداية مبتدئ البرمجه','ابدأ بالترتيب: المتغيرات ← الشروط ← الحلقات ← الدوال ← المصفوفات، وجرّب مثالاً صغيراً في كل خطوة. أمثلة القاموس 📖 مناسبة كبداية.'],
+['كائن كائنات object قاموس dict','الكائن يجمع قيماً بأسمائها:\nعرف شخص = { اسم: "علي", عمر: 20 };\nاكتب(شخص.اسم);\nوفي Python: p = {"name": "Ali"}'],
+['ذكاء محلي نموذج اونلاين انترنت','اضغط زر ⚡ أعلى نافذة المساعد لتفعيل الذكاء المحلي: نموذج صغير يُنزَّل مرة واحدة ثم يعمل على معالج جهازك. وبدونه أجيب من قاعدة جاهزة وأبحث في ويكيبيديا.']
+].map(([k,a])=>[nz(k).split(' '),a]));
+
+const STOP=new Set('ما هو هي معنى كيف ماذا لماذا استخدم اشرح شرح عن في من هل لي انا اريد ممكن'.split(' '));
+function kbSearch(q){
+  const n=nz(q),toks=n.split(/[^\p{L}\p{N}_]+/u).filter(Boolean),core=toks.filter(t=>!STOP.has(t)),o=[];
+  const e=DICT.find(e=>[e.ar,...(e.alt||[])].some(k=>k.length>2&&toks.includes(nz(k))));
+  if(e&&core.length<=1)o.push({s:9,a:'«'+e.ar+'» تقابل «'+e.js+'» في JavaScript.\n'+e.d+'\nمثال:\n'+e.ex});
+  FAQ.forEach(([ks,a])=>{const s=ks.filter(k=>k.length>2&&toks.some(t=>t.includes(k))).length;if(s)o.push({s,a})});
+  return o.sort((x,y)=>y.s-x.s).slice(0,2);
+}
+
+const jf=u=>fetch(u,{signal:AbortSignal.timeout(8000)}).then(r=>r.json());
+async function wiki(lang,q){
+  const r=await jf('https://'+lang+'.wikipedia.org/w/api.php?action=query&list=search&srlimit=2&format=json&origin=*&srsearch='+encodeURIComponent(q));
+  const out=[];
+  for(const h of ((r.query&&r.query.search)||[]).slice(0,2)){
+    try{
+      const s=await jf('https://'+lang+'.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(h.title));
+      if(s.extract)out.push({t:s.title,x:s.extract.slice(0,500),u:s.content_urls&&s.content_urls.desktop&&s.content_urls.desktop.page});
+    }catch(e){}
+  }
+  return out;
+}
+function webSearch(q){
+  const c=q.replace(/^(ابحث(ي)?( لي)?( عن)?|بحث( عن)?|ما (هو|هي|معنى)|ماذا تعني|من (هو|هي)|عرّف|عرف|اشرح( لي)?)\s+/,'').replace(/[؟?]/g,'').trim();
+  return wiki(/[\u0600-\u06FF]/.test(c)?'ar':'en',c||q);
+}
+function links(b,res){
+  (res||[]).forEach(r=>{if(!r.u)return;b.appendChild(document.createElement('br'));const a=document.createElement('a');a.href=r.u;a.target='_blank';a.rel='noopener';a.textContent='🔗 '+r.t+' — ويكيبيديا';a.style.color='#4fc1ff';b.appendChild(a)});
+}
+
+let gen=null,loading=false,TS=null;
+const AIURL='https://cdn.jsdelivr.net/npm/@huggingface/transformers@4',MODEL='onnx-community/Qwen3-0.6B-ONNX';
+const clean=t=>t.replace(/<think>[\s\S]*?(<\/think>|$)/g,'').trim();
+async function loadAI(){
+  if(gen||loading)return;loading=true;
+  const b=say('⏳ جاري تحميل النموذج… 0%','bot'),files={};
+  const cb=p=>{
+    if(p.file&&p.total)files[p.file]=[p.loaded||0,p.total];
+    const v=Object.values(files),t=v.reduce((a,x)=>a+x[1],0);
+    if(t)b.textContent='⏳ جاري تحميل النموذج… '+Math.min(100,Math.round(v.reduce((a,x)=>a+x[0],0)/t*100))+'%';
+  };
+  try{
+    const M=await import(AIURL);TS=M.TextStreamer;
+    const opt=d=>({device:d,dtype:d==='webgpu'?'q4f16':'q4',progress_callback:cb});
+    try{if(!navigator.gpu)throw 0;gen=await M.pipeline('text-generation',MODEL,opt('webgpu'))}
+    catch(e){b.textContent='⏳ جاري التحميل بوضع المعالج (أبطأ)…';gen=await M.pipeline('text-generation',MODEL,opt('wasm'))}
+    b.textContent='✅ الذكاء المحلي جاهز، ويعمل على معالج جهازك. اسألني ما شئت.';
+    try{localStorage.setItem('dhad_ai','1')}catch(e){}
+  }catch(e){
+    b.textContent='تعذّر تحميل النموذج: '+(e&&e.message||e)+'\nقد لا يدعمه جهازك أو متصفحك، أو لا يوجد اتصال. سأكمل بالإجابات الجاهزة والبحث.';
+  }
+  loading=false;
+}
+async function llm(q,ctx){
+  const code=ed.value.trim().slice(0,1200);
+  const msgs=[
+    {role:'system',content:'أنت مساعد برمجة ودود داخل «محرر لغة الضاد». أجب بالعربية بإيجاز ووضوح (٣ إلى ٦ أسطر). استعن بالسياق إن كان مفيداً، وإذا لم تكن متأكداً فقل ذلك ولا تخترع معلومات. لغة الضاد لغة عربية تُترجم إلى JavaScript.'},
+    {role:'user',content:(ctx?'السياق:\n'+ctx+'\n\n':'')+(code&&/كود|الكود|برنامج|سطر|خطا|شفر/.test(nz(q))?'كود المستخدم ('+LBL[lang]+'):\n'+code+'\n\n':'')+'السؤال: '+q+' /no_think'}
+  ];
+  const b=say('…','bot');let txt='';
+  try{
+    const out=await gen(msgs,{max_new_tokens:350,do_sample:false,repetition_penalty:1.1,
+      streamer:new TS(gen.tokenizer,{skip_prompt:true,skip_special_tokens:true,callback_function:t=>{txt+=t;b.textContent=clean(txt)||'…';alog.scrollTop=alog.scrollHeight}})});
+    b.textContent=clean(out[0].generated_text.at(-1).content)||clean(txt)||'لم أستطع صياغة إجابة.';
+  }catch(e){b.textContent='حدث خطأ أثناء التوليد: '+(e&&e.message||e)}
+  return b;
+}
+async function reply(q){
+  const n=nz(q),web=/ابحث|بحث|search|ويكي/.test(n);
+  if(/^(مرحبا|اهلا|السلام|هلا|صباح|مساء)/.test(n)&&n.split(' ').length<4)return say('أهلاً بك! اسألني عن البرمجة أو اضغط «صحّح أخطائي» لأفحص كودك 🤖','bot');
+  if(!web&&/صحح|اصلح|خطا|اخطا|مشكل|لا يعمل|فحص|راجع/.test(n))return doCheck();
+  const kb=kbSearch(q),top=kb[0];
+  if(!web&&top&&(top.s>=2||!gen))return say(top.a,'bot');
+  let res=null,note=null;
+  if(web||!top){
+    note=say('🔎 أبحث…','bot');
+    try{res=await webSearch(q)}catch(e){res=null}
+    note.remove();
+  }
+  if(gen){
+    const ctx=[...kb.map(k=>k.a),...(res||[]).map(r=>r.t+': '+r.x)].join('\n---\n').slice(0,1800);
+    const b=await llm(q,ctx);links(b,res);return;
+  }
+  if(res&&res.length){const b=say(res.map(r=>r.t+':\n'+r.x).join('\n\n'),'bot');links(b,res);return}
+  if(top)return say(top.a,'bot');
+  say(res===null?'تعذّر البحث (لا اتصال بالإنترنت أو الشبكة تمنعه) 🌐\nجرّب «⚡» أعلى النافذة لتفعيل الذكاء المحلي، أو اسألني عن كلمة مثل «اذا» أو «كرر».':'لم أجد نتيجة مناسبة 🤔\nجرّب صياغة أخرى، أو فعّل الذكاء المحلي بزر «⚡» أعلى النافذة.','bot');
+}
+$('ai-power').onclick=()=>{
+  aiEl.hidden=false;
+  if(gen)return say('الذكاء المحلي يعمل بالفعل ✅','bot');
+  const b=say('⚡ لتفعيل الذكاء المحلي سأنزّل نموذجاً صغيراً (Qwen3-0.6B، مئات الميجابايت) مرة واحدة يُخزَّن على جهازك، ثم يعمل بمعالج جهازك بلا إنترنت. النماذج الصغيرة قد تخطئ وقد تكون بطيئة على بعض الهواتف. يُفضّل الاتصال بشبكة Wi-Fi.','bot');
+  const c=document.createElement('button');c.textContent='تحميل وتفعيل';c.onclick=()=>{c.remove();loadAI()};
+  b.append(document.createElement('br'),c);
+};
+$('ai-open').addEventListener('click',()=>{try{if(localStorage.getItem('dhad_ai'))loadAI()}catch(e){}});
+</script>
+</body>
+</html>
